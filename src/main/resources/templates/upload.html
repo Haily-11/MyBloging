@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
+<head>
+    <title>上传 - Haily笔记</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="main-container">
+        <div class="content-area">
+            <div class="post-card">
+                <h2 class="post-title neon-text">图片上传</h2>
+                <div class="article-content">
+                    <p>上传图片到阿里云，支持拖拽上传和点击上传。</p>
+                    
+                    <div class="upload-container">
+                        <div class="upload-area">
+                            <input type="file" class="upload-input" multiple accept="image/*">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">点击或拖拽图片到此处上传</div>
+                            <div class="upload-hint">支持 JPG、PNG、GIF 等图片格式，单张图片不超过 10MB</div>
+                        </div>
+                        <div class="upload-progress">
+                            <div class="upload-progress-bar"></div>
+                        </div>
+                        <div class="uploaded-images">
+                            <!-- 上传的图片将显示在这里 -->
+                        </div>
+                    </div>
+                    
+                    <div class="three-d-container">
+                        <div class="three-d-card">
+                            <div class="three-d-front">
+                                <i class="fas fa-image fa-3x"></i>
+                            </div>
+                            <div class="three-d-back">
+                                <i class="fas fa-cloud fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="sidebar-widget">
+                <h3 class="widget-title gradient-text">上传说明</h3>
+                <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6; list-style: disc; padding-left: 20px;">
+                    <li>支持多种图片格式：JPG、PNG、GIF、WebP等</li>
+                    <li>单张图片大小不超过10MB</li>
+                    <li>上传的图片会存储到阿里云OSS</li>
+                    <li>上传成功后会返回图片URL</li>
+                    <li>可以直接复制图片URL使用</li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-widget">
+                <h3 class="widget-title gradient-text">使用技巧</h3>
+                <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6; list-style: disc; padding-left: 20px;">
+                    <li>拖拽多张图片可以批量上传</li>
+                    <li>点击已上传的图片可以查看大图</li>
+                    <li>点击删除按钮可以移除已上传的图片</li>
+                    <li>上传进度条会显示上传状态</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

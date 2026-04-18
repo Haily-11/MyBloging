@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
+<head><title>写文章</title>
+<style>
+    .write-container {
+        max-width: 900px;
+        margin: 60px auto;
+        background: rgba(10, 14, 39, 0.9);
+        border-radius: 12px;
+        padding: 48px;
+        box-shadow: 0 4px 6px -1px rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    .write-container input[type="text"],
+    .write-container textarea,
+    .write-container input[type="password"],
+    .write-container input[type="email"],
+    .write-container .form-control {
+        color: #ccd6f6 !important;
+        -webkit-text-fill-color: #ccd6f6 !important;
+        background: rgba(5, 8, 17, 0.8) !important;
+        border: 1px solid rgba(0, 240, 255, 0.2) !important;
+    }
+
+    .write-container input::placeholder,
+    .write-container textarea::placeholder {
+        color: #8892b0 !important;
+        -webkit-text-fill-color: #8892b0 !important;
+    }
+
+    .write-container input:focus,
+    .write-container textarea:focus,
+    .write-container .form-control:focus {
+        border-color: #00f0ff !important;
+        box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.2) !important;
+        color: #ccd6f6 !important;
+        -webkit-text-fill-color: #ccd6f6 !important;
+    }
+
+    .write-container label {
+        color: #a8b2d1 !important;
+    }
+
+    .upload-btn {
+        margin-bottom: 10px;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #00f0ff, #7000ff);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    }
+
+    .upload-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+    }
+
+    .upload-status {
+        margin-left: 10px;
+        font-size: 14px;
+        color: #00f0ff;
+    }
+</style>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="write-container">
+        <h2 class="write-title neon-text" th:text="${isEdit} ? '编辑文章' : '写文章'">写文章</h2>
+        <form method="post" th:action="${isEdit} ? '/doEdit' : '/doWrite'">
+            <input type="hidden" name="id" th:if="${isEdit}" th:value="${article.id}">
+            <div class="mb-3">
+                <label>标题</label>
+                <input type="text" name="title" class="form-control" required placeholder="请输入文章标题" th:value="${article?.title}">
+            </div>
+            <div class="mb-3" style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>分类</label>
+                    <input type="text" name="category" id="categoryInput" class="form-control" placeholder="输入分类，回车添加" th:value="${article?.category}">
+                    <div id="categorySuggestions" style="margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                </div>
+                <div style="flex: 1;">
+                    <label>标签</label>
+                    <input type="text" name="tags" id="tagsInput" class="form-control" placeholder="输入标签，逗号分隔" th:value="${article?.tags}">
+                    <div id="tagsSuggestions" style="margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label>摘要（可选）</label>
+                <textarea name="summary" class="form-control" rows="2" placeholder="简短描述文章内容" th:text="${article?.summary}"></textarea>
+            </div>
+            <div class="mb-3">
+                <label>内容</label>
+                <div style="margin-bottom: 10px;">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('imageUpload').click()">
+                        <i class="fas fa-image"></i> 上传图片
+                    </button>
+                    <span id="uploadStatus" class="upload-status"></span>
+                </div>
+                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                <textarea name="content" id="contentArea" class="form-control" rows="15" required placeholder="支持Markdown格式，点击上传图片按钮插入图片" th:text="${article?.content}"></textarea>
+            </div>
+            <button type="submit" class="btn-submit" th:text="${isEdit} ? '保存修改' : '发布文章'">发布文章</button>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        const categories = /*[[${categories}]]*/ [];
+        const tags = /*[[${tags}]]*/ [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryInput = document.getElementById('categoryInput');
+            const tagsInput = document.getElementById('tagsInput');
+            const categorySuggestions = document.getElementById('categorySuggestions');
+            const tagsSuggestions = document.getElementById('tagsSuggestions');
+
+            if (categories && categories.length > 0) {
+                categories.forEach(cat => {
+                    const span = document.createElement('span');
+                    span.textContent = cat;
+                    span.style.cssText = 'padding: 4px 10px; background: rgba(0, 240, 255, 0.2); color: #00f0ff; border-radius: 12px; font-size: 12px; cursor: pointer;';
+                    span.onclick = () => { categoryInput.value = cat; };
+                    categorySuggestions.appendChild(span);
+                });
+            }
+
+            if (tags && tags.length > 0) {
+                tags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.textContent = tag;
+                    span.style.cssText = 'padding: 4px 10px; background: rgba(112, 0, 255, 0.2); color: #7000ff; border-radius: 12px; font-size: 12px; cursor: pointer;';
+                    span.onclick = () => {
+                        const currentTags = tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()) : [];
+                        if (!currentTags.includes(tag)) {
+                            currentTags.push(tag);
+                            tagsInput.value = currentTags.join(', ');
+                        }
+                    };
+                    tagsSuggestions.appendChild(span);
+                });
+            }
+        });
+
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('uploadStatus');
+            statusEl.textContent = '上传中...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const contentArea = document.getElementById('contentArea');
+                    const cursorPos = contentArea.selectionStart;
+                    const textBefore = contentArea.value.substring(0, cursorPos);
+                    const textAfter = contentArea.value.substring(cursorPos);
+                    const imageHtml = '<img src="' + data.url + '" style="max-width: 100%;">';
+
+                    contentArea.value = textBefore + imageHtml + textAfter;
+                    statusEl.textContent = '✓ 图片已插入';
+                    setTimeout(() => statusEl.textContent = '', 3000);
+                } else {
+                    statusEl.textContent = '✗ 上传失败: ' + data.message;
+                    statusEl.style.color = '#ff006e';
+                }
+            })
+            .catch(err => {
+                statusEl.textContent = '✗ 上传失败: ' + err.message;
+                statusEl.style.color = '#ff006e';
+            });
+        });
+    </script>

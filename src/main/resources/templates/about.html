@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
+<head><title>关于 - Haily笔记</title></head>
+<body>
+<div th:fragment="content">
+    <div class="main-container">
+        <div class="content-area">
+            <div class="post-card">
+                <h2 class="post-title">关于本站</h2>
+                <div class="article-content">
+                    <div class="about-intro">
+                        <div class="about-avatar">
+                            <div class="avatar-circle">
+                                <i class="fas fa-code fa-3x"></i>
+                            </div>
+                        </div>
+                        <div class="about-bio">
+                            <h3>Haliy笔记</h3>
+                            <p class="bio-subtitle">技术分享 · 经验沉淀 · 成长记录</p>
+                            <p>欢迎来到Haily笔记！这是一个专注于技术分享和个人成长的博客平台，致力于为开发者提供有价值的技术内容和实践经验。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3><i class="fas fa-lightbulb"></i> 博客定位</h3>
+                        <p>本博客主要关注以下技术领域：</p>
+                        <ul class="tech-stack">
+                            <li><span class="tech-tag">Java 后端开发</span></li>
+                            <li><span class="tech-tag">Spring Boot & Spring Cloud</span></li>
+                            <li><span class="tech-tag">数据库设计与优化</span></li>
+                            <li><span class="tech-tag">微服务架构</span></li>
+                            <li><span class="tech-tag">DevOps 实践</span></li>
+                            <li><span class="tech-tag">系统架构设计</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3><i class="fas fa-rocket"></i> 博客愿景</h3>
+                        <p>通过分享技术经验和解决方案，帮助更多开发者少走弯路，快速成长。同时，也希望通过记录自己的学习和实践过程，形成个人的知识体系，不断提升技术能力。</p>
+                        <p>我们相信，技术的价值在于解决实际问题，分享的价值在于帮助他人成长。</p>
+                    </div>
+                    
+                    <div class="about-section">
+                        <h3><i class="fas fa-hands-helping"></i> 联系与合作</h3>
+                        <p>如果您对博客内容有任何建议或问题，或者希望进行技术交流与合作，欢迎通过以下方式联系：</p>
+                        <div class="contact-info">
+                            <a href="#" class="contact-link"><i class="fas fa-envelope"></i> contact@yoyo-notes.com</a>
+                            <a href="#" class="contact-link"><i class="fab fa-github"></i> github.com/yoyo-notes</a>
+                            <a href="#" class="contact-link"><i class="fab fa-weixin"></i> yoyo-notes</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="sidebar-widget">
+                <h3 class="widget-title">技术栈</h3>
+                <div class="tech-stack-sidebar">
+                    <div class="tech-item">
+                        <span class="tech-name">Java</span>
+                        <div class="tech-progress">
+                            <div class="tech-bar" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-name">Spring Boot</span>
+                        <div class="tech-progress">
+                            <div class="tech-bar" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-name">MySQL</span>
+                        <div class="tech-progress">
+                            <div class="tech-bar" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-name">Redis</span>
+                        <div class="tech-progress">
+                            <div class="tech-bar" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-name">Docker</span>
+                        <div class="tech-progress">
+                            <div class="tech-bar" style="width: 70%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-widget">
+                <h3 class="widget-title">最新动态</h3>
+                <div class="recent-activity">
+                    <div class="activity-item">
+                        <i class="fas fa-pen-to-square"></i>
+                        <span>发布了新文章</span>
+                        <small>2026-04-15</small>
+                    </div>
+                    <div class="activity-item">
+                        <i class="fas fa-code-branch"></i>
+                        <span>更新了技术栈</span>
+                        <small>2026-04-10</small>
+                    </div>
+                    <div class="activity-item">
+                        <i class="fas fa-server"></i>
+                        <span>优化了网站性能</span>
+                        <small>2026-04-05</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

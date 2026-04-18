@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
+<head>
+    <title th:text="${article.title} + ' - 友人笔记'">文章详情</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="main-container">
+        <div class="content-area">
+            <div class="article-container">
+                <h1 class="article-title" th:text="${article.title}">文章标题</h1>
+                <div class="article-meta">
+                    <span>📅 发表于 <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd HH:mm')}">2024-01-01</span></span>
+                    <span style="margin-left: 20px;">👁️ 阅读 <span th:text="${article.viewCount}">0</span> 次</span>
+                    <th:block th:if="${session.user != null}">
+                        <span style="margin-left: 20px;">
+                            <a th:href="@{/edit/{id}(id=${article.id})}" style="color: #00f0ff; text-decoration: none;">
+                                <i class="fas fa-edit"></i> 编辑
+                            </a>
+                        </span>
+                        <span style="margin-left: 10px;">
+                            <a th:href="@{/delete/{id}(id=${article.id})}"
+                               style="color: #ff006e; text-decoration: none;"
+                               onclick="return confirm('确定要删除这篇文章吗？')">
+                                <i class="fas fa-trash"></i> 删除
+                            </a>
+                        </span>
+                    </th:block>
+                </div>
+                <div class="article-content" th:utext="${#strings.replace(article.content, '\n', '<br>')}">
+                    文章内容
+                </div>
+            </div>
+        </div>
+
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-widget">
+                <h3 class="widget-title">📌 关于本站</h3>
+                <p style="font-size: 14px; color: #666;">记录技术成长，分享学习心得。</p>
+            </div>
+
+            <div class="sidebar-widget">
+                <h3 class="widget-title">📖 文章导航</h3>
+                <ul class="recent-posts">
+                    <li><a href="/articles">返回文章列表</a></li>
+                    <li><a href="/">返回首页</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

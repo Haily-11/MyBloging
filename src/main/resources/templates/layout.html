@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} ?: '个人博客'">个人博客</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- 顶部导航栏 -->
+<header class="header">
+    <div class="nav-container">
+        <a href="/" class="logo">Haily笔记</a>
+        <div class="nav-menu">
+            <a href="/">首页</a>
+            <a href="/articles">文章列表</a>
+            <a href="/techstack">技术栈</a>
+            <a href="/about">关于</a>
+            <th:block th:if="${session.user == null}">
+                <a href="/login">登录</a>
+            </th:block>
+            <th:block th:if="${session.user != null}">
+                <a href="/write" class="btn-write">✍️ 写文章</a>
+                <a href="/logout">退出</a>
+            </th:block>
+        </div>
+    </div>
+</header>
+
+<!-- 背景图片 -->
+<div class="bg-container">
+    <div class="bg-img" style="background-image: url('/images/tree1.jpg');"></div>
+    <div class="bg-mask"></div>
+</div>
+
+<!-- 粒子效果 -->
+<div id="particles-js"></div>
+
+<!-- 视差滚动效果 -->
+<div class="parallax-container"></div>
+
+<!-- 主要内容区 -->
+<main>
+    <div th:replace="~{::content}"></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 导航栏滚动效果
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('.header');
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+        
+        // 视差滚动效果
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelector('.bg-img');
+        const speed = scrolled * 0.5;
+        if (parallax) {
+            parallax.style.transform = `translateY(${speed}px)`;
+        }
+    });
+
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // 粒子效果
+    document.addEventListener('DOMContentLoaded', function() {
+        particlesJS('particles-js', {
+            particles: {
+                number: {
+                    value: 80,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: '#ffffff'
+                },
+                shape: {
+                    type: 'circle',
+                    stroke: {
+                        width: 0,
+                        color: '#000000'
+                    }
+                },
+                opacity: {
+                    value: 0.5,
+                    random: false,
+                    anim: {
+                        enable: false
+                    }
+                },
+                size: {
+                    value: 3,
+                    random: true,
+                    anim: {
+                        enable: false
+                    }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#ffffff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: 'grab'
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: 'push'
+                    },
+                    resize: true
+                },
+                modes: {
+                    grab: {
+                        distance: 140,
+                        line_linked: {
+                            opacity: 1
+                        }
+                    },
+                    push: {
+                        particles_nb: 4
+                    }
+                }
+            },
+            retina_detect: true
+        });
+    });
+
+    // 图片上传功能
+    function initUpload() {
+        const uploadArea = document.querySelector('.upload-area');
+        const uploadInput = document.querySelector('.upload-input');
+        const uploadProgress = document.querySelector('.upload-progress-bar');
+        const uploadedImages = document.querySelector('.uploaded-images');
+        
+        if (uploadArea && uploadInput) {
+            uploadArea.addEventListener('click', function() {
+                uploadInput.click();
+            });
+            
+            uploadInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    uploadFiles(files);
+                }
+            });
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    uploadFiles(files);
+                }
+            });
+        }
+        
+        function uploadFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    axios.post('/api/upload', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        },
+                        onUploadProgress: function(progressEvent) {
+                            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                            if (uploadProgress) {
+                                uploadProgress.style.width = percentCompleted + '%';
+                            }
+                        }
+                    })
+                    .then(response => {
+                        if (response.data.success) {
+                            addUploadedImage(response.data.url);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('上传失败:', error);
+                    })
+                    .finally(() => {
+                        if (uploadProgress) {
+                            uploadProgress.style.width = '0%';
+                        }
+                    });
+                }
+            });
+        }
+        
+        function addUploadedImage(url) {
+            if (uploadedImages) {
+                const imageDiv = document.createElement('div');
+                imageDiv.className = 'uploaded-image';
+                imageDiv.innerHTML = `
+                    <img src="${url}" alt="上传的图片">
+                    <button class="image-remove" onclick="removeImage(this)"><i class="fas fa-times"></i></button>
+                `;
+                uploadedImages.appendChild(imageDiv);
+            }
+        }
+    }
+    
+    function removeImage(button) {
+        const imageDiv = button.closest('.uploaded-image');
+        if (imageDiv) {
+            imageDiv.remove();
+        }
+    }
+    
+    // 初始化上传功能
+    document.addEventListener('DOMContentLoaded', initUpload);
+</script>
+</body>
+</html>

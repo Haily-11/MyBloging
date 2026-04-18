@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
+<head><title>文章列表 - Haily笔记</title></head>
+<body>
+<div th:fragment="content">
+    <div class="main-container">
+        <div class="content-area">
+            <div th:each="article : ${articles}" class="post-card">
+                <h2 class="post-title">
+                    <a th:href="@{/article/{id}(id=${article.id})}" th:text="${article.title}">标题</a>
+                </h2>
+                <div class="post-meta">
+                    📅 <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd')}">日期</span>
+                </div>
+                <div class="post-summary" th:text="${article.summary}">摘要</div>
+                <div class="post-footer">
+                    <a th:href="@{/article/{id}(id=${article.id})}" class="read-more">阅读全文 →</a>
+                    <span>👁️ <span th:text="${article.viewCount}">0</span></span>
+                </div>
+            </div>
+
+            <!-- 分页 -->
+            <nav th:if="${totalPages > 1}" style="margin-top: 30px;">
+                <ul class="pagination">
+                    <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}">
+                        <a class="page-link" th:href="@{/articles(page=${i})}" th:text="${i}"
+                           th:classappend="${currentPage == i} ? 'active' : ''"></a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-widget">
+                <h3 class="widget-title">📌 关于本站</h3>
+                <p>记录技术成长，分享学习心得。</p>
+            </div>
+            <div class="sidebar-widget">
+                <h3 class="widget-title">🔥 最新文章</h3>
+                <ul class="recent-posts">
+                    <li th:each="article : ${recentArticles}">
+                        <a th:href="@{/article/{id}(id=${article.id})}" th:text="${article.title}"></a>
+                        <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd')}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

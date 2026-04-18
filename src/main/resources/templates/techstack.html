@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
+<head><title>技术栈 - Haily笔记</title>
+<style>
+    .tech-controls {
+        margin-bottom: 20px;
+        padding: 20px;
+        background: rgba(10, 14, 39, 0.8);
+        border-radius: 12px;
+        border: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .tech-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .tech-form input {
+        padding: 8px 12px;
+        background: rgba(5, 8, 17, 0.8);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 6px;
+        color: #ccd6f6;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .tech-form input:focus {
+        outline: none;
+        border-color: #00f0ff;
+        box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.2);
+    }
+
+    .btn-tech {
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #00f0ff, #7000ff);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-tech:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+
+    .article-match-panel {
+        position: absolute;
+        background: rgba(10, 14, 39, 0.95);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        min-width: 300px;
+        max-width: 400px;
+        box-shadow: 0 4px 20px rgba(0, 240, 255, 0.2);
+        z-index: 1000;
+        display: none;
+        backdrop-filter: blur(10px);
+    }
+
+    .article-match-panel h4 {
+        color: #00f0ff;
+        margin-bottom: 15px;
+        font-size: 16px;
+        border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+        padding-bottom: 10px;
+    }
+
+    .article-match-panel .match-item {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+    }
+
+    .article-match-panel .match-item:last-child {
+        border-bottom: none;
+    }
+
+    .article-match-panel .match-item a {
+        color: #ccd6f6;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .article-match-panel .match-item a:hover {
+        color: #00f0ff;
+    }
+
+    .no-match {
+        color: #8892b0;
+        font-style: italic;
+    }
+
+    .tech-edit-panel {
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(10, 14, 39, 0.8);
+        border-radius: 12px;
+        border: 1px solid rgba(0, 240, 255, 0.2);
+    }
+</style>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="main-container">
+        <div class="content-area" style="width: 100%;">
+            <!-- 知识图谱 -->
+            <div class="post-card" style="margin-bottom: 20px;">
+                <h2 class="post-title neon-text">技术栈</h2>
+
+                <!-- 管理员控制面板 -->
+                <div class="tech-controls" th:if="${user != null}">
+                    <h3 style="color: #00f0ff; margin-bottom: 15px; font-size: 18px;">
+                        <i class="fas fa-cog"></i> 管理技术点
+                    </h3>
+                    <form th:action="${isEdit} ? '/tech/update' : '/tech/add'" method="post" class="tech-form">
+                        <input type="hidden" name="id" th:if="${isEdit}" th:value="${tech.id}">
+                        <input type="text" name="name" placeholder="技术名称" required th:value="${tech?.name}">
+                        <input type="color" name="color" th:value="${tech?.color} ?: '#00f0ff'" style="width: 60px; padding: 2px;">
+                        <input type="text" name="description" placeholder="描述（可选）" th:value="${tech?.description}">
+                        <button type="submit" class="btn-tech" th:text="${isEdit} ? '保存' : '添加'">添加</button>
+                        <a th:if="${isEdit}" href="/techstack" class="btn-tech" style="background: #666;">取消</a>
+                    </form>
+                </div>
+
+                <div id="techGraph" style="width: 100%; height: 600px; position: relative;"></div>
+                <div id="articleMatchPanel" class="article-match-panel"></div>
+            </div>
+
+            <!-- 学习进度和签到日历 -->
+            <div style="display: flex; gap: 20px;">
+                <!-- 学习进度条 -->
+                <div class="post-card" style="flex: 1;">
+                    <h3 style="color: #00f0ff; margin-bottom: 20px; font-size: 18px;">
+                        <i class="fas fa-tasks"></i> 学习进度
+                    </h3>
+
+                    <!-- 添加进度表单 -->
+                    <div th:if="${user != null}" style="margin-bottom: 20px;">
+                        <form action="/progress/add" method="post" style="display: flex; gap: 10px;">
+                            <input type="text" name="name" placeholder="学习内容名称" required style="flex: 1; padding: 8px 12px; background: rgba(5, 8, 17, 0.8); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 6px; color: #ccd6f6;">
+                            <input type="color" name="color" value="#00f0ff" style="width: 60px; padding: 2px;">
+                            <button type="submit" class="btn-tech">添加</button>
+                        </form>
+                    </div>
+
+                    <div id="progressContainer">
+                        <div th:each="progress : ${progresses}" style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <span style="color: #ccd6f6; font-size: 14px;" th:text="${progress.name}">技术名称</span>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: #00f0ff; font-size: 14px; font-weight: 500;" th:text="${progress.progress} + '%'">0%</span>
+                                    <th:block th:if="${user != null}">
+                                        <form th:action="@{/progress/increment/{id}(id=${progress.id})}" method="post" style="display: inline;">
+                                            <button type="submit" class="btn-tech" style="padding: 4px 8px; font-size: 12px;" th:if="${progress.progress < 100}">+10%</button>
+                                        </form>
+                                        <a th:href="@{/progress/delete/{id}(id=${progress.id})}" class="btn-tech" style="padding: 4px 8px; font-size: 12px; background: #ff006e;" onclick="return confirm('确定删除？')">删除</a>
+                                    </th:block>
+                                </div>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: rgba(5, 8, 17, 0.8); border-radius: 4px; overflow: hidden;">
+                                <div th:style="'width: ' + ${progress.progress} + '%; height: 100%; background: linear-gradient(90deg, ' + ${progress.color} + ', ' + ${progress.color} + 'dd); border-radius: 4px; transition: width 0.5s ease; box-shadow: 0 0 10px ' + ${progress.color} + '66;'"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 签到日历 -->
+                <div class="post-card" style="width: 320px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #00f0ff; font-size: 18px; margin: 0;">
+                            <i class="fas fa-calendar-check"></i> 学习日历
+                        </h3>
+                        <th:block th:if="${user != null && todayCheckIn == null}">
+                            <form action="/checkin" method="post">
+                                <button type="submit" class="btn-tech" style="padding: 6px 12px; font-size: 12px;">
+                                    <i class="fas fa-check"></i> 今日签到
+                                </button>
+                            </form>
+                        </th:block>
+                        <th:block th:if="${todayCheckIn != null}">
+                            <span style="color: #00f0ff; font-size: 12px; background: rgba(0, 240, 255, 0.2); padding: 4px 8px; border-radius: 4px;">
+                                <i class="fas fa-check-circle"></i> 已签到
+                            </span>
+                        </th:block>
+                    </div>
+                    <div id="calendarContainer">
+                        <!-- 日历将通过 JS 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const chart = echarts.init(document.getElementById('techGraph'));
+
+            const techs = /*[[${techs}]]*/ [];
+            const techArticles = /*[[${techArticles}]]*/ {};
+            const user = /*[[${user}]]*/ null;
+            const progresses = /*[[${progresses}]]*/ [];
+            const recentCheckIns = /*[[${recentCheckIns}]]*/ [];
+
+            const data = techs.map(tech => ({
+                name: tech.name,
+                id: tech.id,
+                symbolSize: 70,
+                itemStyle: { color: tech.color || '#00f0ff' },
+                label: {
+                    show: true,
+                    fontSize: 14,
+                    color: '#ccd6f6'
+                }
+            }));
+
+            const links = [];
+            for (let i = 0; i < techs.length; i++) {
+                for (let j = i + 1; j < techs.length; j++) {
+                    if (Math.random() > 0.5) {
+                        links.push({
+                            source: techs[i].name,
+                            target: techs[j].name
+                        });
+                    }
+                }
+            }
+
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        if (params.dataType === 'node') {
+                            return `<strong>${params.name}</strong>`;
+                        }
+                        return '';
+                    }
+                },
+                animationDurationUpdate: 1500,
+                animationEasingUpdate: 'quinticInOut',
+                series: [{
+                    type: 'graph',
+                    layout: 'force',
+                    symbolSize: 70,
+                    roam: true,
+                    force: {
+                        repulsion: 400,
+                        edgeLength: 180,
+                        gravity: 0.1
+                    },
+                    data: data,
+                    links: links,
+                    lineStyle: {
+                        color: 'source',
+                        curveness: 0.3,
+                        width: 2,
+                        opacity: 0.6
+                    },
+                    emphasis: {
+                        focus: 'adjacency',
+                        lineStyle: {
+                            width: 4
+                        }
+                    }
+                }]
+            };
+
+            chart.setOption(option);
+
+            chart.on('mouseover', function(params) {
+                if (params.dataType === 'node' && user) {
+                    const techId = params.data.id;
+                    const articles = techArticles[techId] || [];
+
+                    const panel = document.getElementById('articleMatchPanel');
+                    let html = `<h4><i class="fas fa-link"></i> 与 "${params.name}" 相关的文章</h4>`;
+
+                    if (articles.length > 0) {
+                        articles.forEach(article => {
+                            html += `<div class="match-item">
+                                <a href="/article/${article.id}">
+                                    <i class="fas fa-file-alt"></i> ${article.title}
+                                </a>
+                                <div style="color: #8892b0; font-size: 12px; margin-top: 4px;">
+                                    ${article.summary || ''}
+                                </div>
+                            </div>`;
+                        });
+                    } else {
+                        html += '<div class="no-match">暂无相关文章</div>';
+                    }
+
+                    panel.innerHTML = html;
+                    panel.style.display = 'block';
+
+                    const chartRect = document.getElementById('techGraph').getBoundingClientRect();
+                    panel.style.left = (params.event.offsetX + 20) + 'px';
+                    panel.style.top = (params.event.offsetY - 20) + 'px';
+                }
+            });
+
+            chart.on('mouseout', function() {
+                document.getElementById('articleMatchPanel').style.display = 'none';
+            });
+
+            window.addEventListener('resize', function() {
+                chart.resize();
+            });
+
+            initCalendar();
+        });
+
+        function initCalendar() {
+            const container = document.getElementById('calendarContainer');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+
+            const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月',
+                               '七月', '八月', '九月', '十月', '十一月', '十二月'];
+
+            const recentCheckIns = /*[[${recentCheckIns}]]*/ [];
+            const checkInDays = recentCheckIns.map(checkIn => {
+                const date = new Date(checkIn.checkInDate[0], checkIn.checkInDate[1] - 1, checkIn.checkInDate[2]);
+                return date.getDate();
+            });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <span style="color: #00f0ff; font-size: 16px; font-weight: 500;">
+                        ${year}年 ${monthNames[month]}
+                    </span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center;">
+            `;
+
+            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+            weekDays.forEach(day => {
+                html += `<div style="color: #8892b0; font-size: 12px; padding: 5px;">${day}</div>`;
+            });
+
+            for (let i = 0; i < firstDay; i++) {
+                html += `<div></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = day === now.getDate();
+                const isCheckedIn = checkInDays.includes(day);
+
+                let bgColor = 'transparent';
+                let textColor = '#ccd6f6';
+                let border = '1px solid rgba(0, 240, 255, 0.1)';
+
+                if (isToday) {
+                    border = '2px solid #00f0ff';
+                    textColor = '#00f0ff';
+                }
+
+                if (isCheckedIn) {
+                    bgColor = 'rgba(0, 240, 255, 0.2)';
+                    textColor = '#00f0ff';
+                    border = '1px solid rgba(0, 240, 255, 0.3)';
+                }
+
+                html += `
+                    <div style="
+                        padding: 8px;
+                        background: ${bgColor};
+                        color: ${textColor};
+                        border-radius: 6px;
+                        font-size: 13px;
+                        border: ${border};
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        ${day}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            const todayCheckIn = /*[[${todayCheckIn}]]*/ null;
+            const streak = todayCheckIn ? todayCheckIn.streak : 0;
+
+            html += `
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0, 240, 255, 0.2);">
+                    <div style="display: flex; justify-content: space-between; color: #8892b0; font-size: 12px;">
+                        <span>本月签到: <strong style="color: #00f0ff;">${checkInDays.length} 天</strong></span>
+                        <span>连续签到: <strong style="color: #00f0ff;">${streak} 天</strong></span>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+    </script>
+</div>
+</body>
+</html>

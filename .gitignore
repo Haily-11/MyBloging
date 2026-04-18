@@ -1,0 +1,40 @@
+target/
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+*.log
+.DS_Store
+Thumbs.db
+*.class
+*.tmp
+
+# 环境变量文件(可能包含密钥)
+.env
+*.env
+
+# IDE 配置
+.vscode/
+*.swp
+*.swo
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Maven/Gradle
+mvnw
+mvnw.cmd
+.gradle/
+build/
+
+# 日志文件
+logs/
+*.log
+
+# 临时文件
+*.tmp
+*.temp
+

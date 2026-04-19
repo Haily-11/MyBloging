@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title} ?: '个人博客'">个人博客</title>
+    <title th:text="${title} ?: 'HailyNotes'">HailyNotes</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
 <!-- 顶部导航栏 -->
 <header class="header">
     <div class="nav-container">
-        <a href="/" class="logo">Haily笔记</a>
+        <a href="/" class="logo">HailyNotes</a>
         <div class="nav-menu">
             <a href="/">首页</a>
             <a href="/articles">文章列表</a>
@@ -26,18 +26,18 @@
                 <a href="/login">登录</a>
             </th:block>
             <th:block th:if="${session.user != null}">
-                <a href="/write" class="btn-write">✍️ 写文章</a>
+                <a href="/write" class="btn-write">写文章</a>
                 <a href="/logout">退出</a>
             </th:block>
         </div>
     </div>
 </header>
 
-<!-- 背景图片 -->
-<div class="bg-container">
-    <div class="bg-img" style="background-image: url('/images/tree1.jpg');"></div>
-    <div class="bg-mask"></div>
-</div>
+<!--&lt;!&ndash; 背景图片 &ndash;&gt;-->
+<!--<div class="bg-container">-->
+<!--    <div class="bg-img" style="background-image: url('/images/tree1.jpg');"></div>-->
+<!--    <div class="bg-mask"></div>-->
+<!--</div>-->
 
 <!-- 粒子效果 -->
 <div id="particles-js"></div>

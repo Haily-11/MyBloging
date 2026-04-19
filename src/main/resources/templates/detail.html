@@ -1,7 +1,90 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
 <head>
-    <title th:text="${article.title} + ' - 友人笔记'">文章详情</title>
+    <title th:text="${article.title} + ' - HailyNotes'">文章详情</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <style>
+        .markdown-body {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            color: #ccd6f6 !important;
+            border-bottom-color: rgba(0, 240, 255, 0.2) !important;
+        }
+
+        .markdown-body p {
+            color: #a8b2d1 !important;
+        }
+
+        .markdown-body a {
+            color: #00f0ff !important;
+        }
+
+        .markdown-body a:hover {
+            color: #7000ff !important;
+        }
+
+        .markdown-body code {
+            background: rgba(0, 240, 255, 0.1) !important;
+            color: #00f0ff !important;
+        }
+
+        .markdown-body pre {
+            background: rgba(10, 14, 39, 0.95) !important;
+            border: 1px solid rgba(0, 240, 255, 0.15) !important;
+        }
+
+        .markdown-body pre code {
+            background: transparent !important;
+            color: #ccd6f6 !important;
+        }
+
+        .markdown-body blockquote {
+            border-left-color: #00f0ff !important;
+            background: rgba(0, 240, 255, 0.05) !important;
+            color: #a8b2d1 !important;
+        }
+
+        .markdown-body table {
+            border-color: rgba(0, 240, 255, 0.2) !important;
+        }
+
+        .markdown-body table th,
+        .markdown-body table td {
+            border-color: rgba(0, 240, 255, 0.2) !important;
+        }
+
+        .markdown-body table th {
+            background: rgba(0, 240, 255, 0.1) !important;
+        }
+
+        .markdown-body img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            color: #a8b2d1 !important;
+        }
+
+        .markdown-body li {
+            color: #a8b2d1 !important;
+        }
+
+        .markdown-body hr {
+            background: rgba(0, 240, 255, 0.2) !important;
+        }
+    </style>
 </head>
 <body>
 <div th:fragment="content">
@@ -10,7 +93,7 @@
             <div class="article-container">
                 <h1 class="article-title" th:text="${article.title}">文章标题</h1>
                 <div class="article-meta">
-                    <span>📅 发表于 <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd HH:mm')}">2024-01-01</span></span>
+                    <span>发表于 <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd HH:mm')}">2024-01-01</span></span>
                     <span style="margin-left: 20px;">👁️ 阅读 <span th:text="${article.viewCount}">0</span> 次</span>
                     <th:block th:if="${session.user != null}">
                         <span style="margin-left: 20px;">
@@ -27,21 +110,20 @@
                         </span>
                     </th:block>
                 </div>
-                <div class="article-content" th:utext="${#strings.replace(article.content, '\n', '<br>')}">
-                    文章内容
+                <div class="article-content markdown-body" id="articleContent">
+                    加载中...
                 </div>
             </div>
         </div>
 
-        <!-- 侧边栏 -->
         <div class="sidebar">
             <div class="sidebar-widget">
-                <h3 class="widget-title">📌 关于本站</h3>
-                <p style="font-size: 14px; color: #666;">记录技术成长，分享学习心得。</p>
+                <h3 class="widget-title">关于本站</h3>
+                <p style="font-size: 14px; color: #a8b2d1;">记录技术成长，分享学习心得。</p>
             </div>
 
             <div class="sidebar-widget">
-                <h3 class="widget-title">📖 文章导航</h3>
+                <h3 class="widget-title">文章导航</h3>
                 <ul class="recent-posts">
                     <li><a href="/articles">返回文章列表</a></li>
                     <li><a href="/">返回首页</a></li>
@@ -49,6 +131,42 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script th:inline="javascript">
+        const contentUrl = /*[[${contentUrl}]]*/ '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!contentUrl) {
+                document.getElementById('articleContent').textContent = '无法加载文章内容';
+                return;
+            }
+
+            fetch(contentUrl)
+                .then(response => response.text())
+                .then(markdownContent => {
+                    const contentElement = document.getElementById('articleContent');
+
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true,
+                        highlight: function(code, lang) {
+                            if (lang && hljs.getLanguage(lang)) {
+                                return hljs.highlight(code, { language: lang }).value;
+                            }
+                            return hljs.highlightAuto(code).value;
+                        }
+                    });
+
+                    contentElement.innerHTML = marked.parse(markdownContent);
+                })
+                .catch(error => {
+                    console.error('加载文章内容失败:', error);
+                    document.getElementById('articleContent').textContent = '加载失败，请稍后重试';
+                });
+        });
+    </script>
 </div>
 </body>
 </html>

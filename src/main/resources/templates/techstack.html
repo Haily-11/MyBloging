@@ -125,6 +125,19 @@
                         <button type="submit" class="btn-tech" th:text="${isEdit} ? '保存' : '添加'">添加</button>
                         <a th:if="${isEdit}" href="/techstack" class="btn-tech" style="background: #666;">取消</a>
                     </form>
+
+                    <!-- 技术点列表与删除 -->
+                    <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px;">
+                        <div th:each="techItem : ${techs}" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 8px;">
+                            <span style="color: #ccd6f6; font-size: 14px;" th:text="${techItem.name}">技术名</span>
+                            <a th:href="@{/tech/delete/{id}(id=${techItem.id})}"
+                               onclick="return confirm('确定删除技术点「' + this.parentElement.querySelector('span').textContent + '」吗？')"
+                               style="color: #ff006e; cursor: pointer; font-size: 16px; text-decoration: none;"
+                               title="删除">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="techGraph" style="width: 100%; height: 600px; position: relative;"></div>

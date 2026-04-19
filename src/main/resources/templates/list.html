@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout}">
-<head><title>文章列表 - Haily笔记</title></head>
+<head><title>文章列表 - HailyNotes</title></head>
 <body>
 <div th:fragment="content">
     <div class="main-container">
@@ -10,7 +10,7 @@
                     <a th:href="@{/article/{id}(id=${article.id})}" th:text="${article.title}">标题</a>
                 </h2>
                 <div class="post-meta">
-                    📅 <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd')}">日期</span>
+                    <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd')}">日期</span>
                 </div>
                 <div class="post-summary" th:text="${article.summary}">摘要</div>
                 <div class="post-footer">
@@ -32,7 +32,7 @@
 
         <div class="sidebar">
             <div class="sidebar-widget">
-                <h3 class="widget-title">📌 关于本站</h3>
+                <h3 class="widget-title">关于本站</h3>
                 <p>记录技术成长，分享学习心得。</p>
             </div>
             <div class="sidebar-widget">

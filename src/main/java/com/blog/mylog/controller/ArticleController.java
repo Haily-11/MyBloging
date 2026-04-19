@@ -1,5 +1,6 @@
 package com.blog.mylog.controller;
 
+import com.blog.mylog.config.AliOssUtil;
 import com.blog.mylog.entity.Article;
 import com.blog.mylog.entity.User;
 import com.blog.mylog.service.ArticleService;
@@ -7,45 +8,63 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final AliOssUtil aliOssUtil;
 
     @GetMapping("/")
-    public String index(Model model) {
-        Page<Article> articlePage = articleService.findAll(1, 5);
+    public String index(Model model, @RequestParam(defaultValue = "1") int page) {
+        Page<Article> articlePage = articleService.findAll(page, 10);
         model.addAttribute("articles", articlePage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", articlePage.getTotalPages());
 
-        Page<Article> recentPage = articleService.findAll(1, 5);
-        model.addAttribute("recentArticles", recentPage.getContent());
-
-        // 统计信息
         List<Article> allArticles = articleService.findAll(1, 10000).getContent();
-        model.addAttribute("totalArticles", allArticles.size());
-        
-        int totalViews = allArticles.stream().mapToInt(a -> a.getViewCount() != null ? a.getViewCount() : 0).sum();
-        model.addAttribute("totalViews", totalViews);
-        
-        int totalLikes = allArticles.stream().mapToInt(a -> a.getLikeCount() != null ? a.getLikeCount() : 0).sum();
-        model.addAttribute("totalLikes", totalLikes);
+        Map<String, Long> tagCounts = allArticles.stream()
+                .filter(a -> a.getTags() != null)
+                .flatMap(a -> Arrays.stream(a.getTags().split(",")))
+                .map(String::trim)
+                .filter(t -> !t.isEmpty())
+                .collect(Collectors.groupingBy(t -> t, Collectors.counting()));
+        model.addAttribute("tagCloud", tagCounts);
 
-        // 分类列表
+        Map<String, Long> monthArchives = allArticles.stream()
+                .filter(a -> a.getCreateTime() != null)
+                .collect(Collectors.groupingBy(
+                        a -> a.getCreateTime().getYear() + "-" + String.format("%02d", a.getCreateTime().getMonthValue()), 
+                        Collectors.counting()
+                ));
+        LinkedHashMap<String, Long> sortedArchives = monthArchives.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByKey().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        
+        model.addAttribute("monthArchives", sortedArchives);
+
+        List<Article> recentArticles = allArticles.stream()
+                .sorted((a, b) -> b.getCreateTime().compareTo(a.getCreateTime()))
+                .limit(5)
+                .collect(Collectors.toList());
+        model.addAttribute("recentArticles", recentArticles);
+
+        model.addAttribute("totalArticles", allArticles.size());
+        model.addAttribute("totalViews", allArticles.stream().mapToInt(a -> a.getViewCount() != null ? a.getViewCount() : 0).sum());
+        model.addAttribute("totalLikes", allArticles.stream().mapToInt(a -> a.getLikeCount() != null ? a.getLikeCount() : 0).sum());
+
         List<String> categories = allArticles.stream()
                 .map(Article::getCategory)
                 .filter(c -> c != null && !c.isEmpty())
                 .distinct()
                 .sorted()
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
         model.addAttribute("categories", categories);
 
         return "index";
@@ -55,7 +74,10 @@ public class ArticleController {
     public String detail(@PathVariable Long id, Model model) {
         Article article = articleService.findById(id);
         articleService.incrementViewCount(id);
+        
+        String contentUrl = aliOssUtil.getArticleContent(id);
         model.addAttribute("article", article);
+        model.addAttribute("contentUrl", contentUrl);
         return "detail";
     }
 
@@ -69,14 +91,43 @@ public class ArticleController {
 
     @GetMapping("/articles")
     public String list(@RequestParam(defaultValue = "1") int page,
-                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(required = false) String month,
                        Model model) {
-        Page<Article> articlePage = articleService.findAll(page, size);
+        Page<Article> articlePage;
+        if (month != null) {
+            articlePage = articleService.findByMonth(month, page, 10);
+            model.addAttribute("filterLabel", "归档：" + month);
+        } else {
+            articlePage = articleService.findAll(page, 10);
+            model.addAttribute("filterLabel", "全部文章");
+        }
+        
         model.addAttribute("articles", articlePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", articlePage.getTotalPages());
-        model.addAttribute("recentArticles", articleService.findAll(1, 5).getContent());
         return "list";
+    }
+
+    private String cleanMarkdown(String content) {
+        if (content == null) return "";
+        String text = content
+                .replaceAll("#+\\s*", "")
+                .replaceAll("\\*\\*(.+?)\\*\\*", "$1")
+                .replaceAll("__(.+?)__", "$1")
+                .replaceAll("\\*(.+?)\\*", "$1")
+                .replaceAll("_(.+?)_", "$1")
+                .replaceAll("!\\[(.*?)\\]\\(.*?\\)", "$1")
+                .replaceAll("\\[(.*?)\\]\\(.*?\\)", "$1")
+                .replaceAll("`{1,3}[^`]*`{1,3}", "")
+                .replaceAll("\\[\\s*\\]\\[.*?\\]", "")
+                .replaceAll("^>\\s*", "")
+                .replaceAll("^[-*+]\\s+", "")
+                .replaceAll("^\\d+\\.\\s+", "")
+                .replaceAll("https?://\\S+", "")
+                .replaceAll("<[^>]*>", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+        return text;
     }
 
     @PostMapping("/doWrite")
@@ -93,15 +144,29 @@ public class ArticleController {
 
         Article article = new Article();
         article.setTitle(title);
-        article.setContent(content);
-        article.setSummary(summary != null && !summary.isEmpty() ? summary :
-                (content.length() > 150 ? content.substring(0, 150) + "..." : content));
+        
+        if (summary != null && !summary.isEmpty()) {
+            article.setSummary(summary);
+        } else {
+            String plainText = cleanMarkdown(content);
+            article.setSummary(plainText.length() > 150 ? plainText.substring(0, 150) + "..." : plainText);
+        }
+        
         article.setCategory(category);
         article.setTags(tags);
         article.setUserId(user.getId());
         article.setStatus(2);
 
-        articleService.save(article);
+        try {
+            Article savedArticle = articleService.save(article);
+            String objectKey = aliOssUtil.uploadArticleContent(content, savedArticle.getId());
+            savedArticle.setContentUrl(objectKey);
+            articleService.save(savedArticle);
+        } catch (Exception e) {
+            System.err.println("文章发布异常: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
         return "redirect:/";
     }
 
@@ -180,11 +245,18 @@ public class ArticleController {
 
         Article article = articleService.findById(id);
         article.setTitle(title);
-        article.setContent(content);
-        article.setSummary(summary != null && !summary.isEmpty() ? summary :
-                (content.length() > 150 ? content.substring(0, 150) + "..." : content));
+        
+        if (summary != null && !summary.isEmpty()) {
+            article.setSummary(summary);
+        } else {
+            String plainText = cleanMarkdown(content);
+            article.setSummary(plainText.length() > 150 ? plainText.substring(0, 150) + "..." : plainText);
+        }
 
         articleService.save(article);
+        
+        aliOssUtil.uploadArticleContent(content, id);
+        
         return "redirect:/article/" + id;
     }
 

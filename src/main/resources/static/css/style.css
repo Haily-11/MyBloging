@@ -614,17 +614,17 @@ body {
 
 .read-more:hover {
     text-decoration: none;
-    transform: translateX(4px);
+    transform: translateX(0px);
     text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
 }
 
 .read-more::after {
-    content: '→';
+    content: '';
     transition: transform 0.3s ease;
 }
 
 .read-more:hover::after {
-    transform: translateX(4px);
+    transform: translateX(0px);
 }
 
 .post-views {

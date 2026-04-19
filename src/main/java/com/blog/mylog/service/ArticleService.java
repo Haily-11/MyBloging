@@ -9,6 +9,7 @@ public interface ArticleService {
     Article findById(Long id);
     Page<Article> findAll(int page, int size);
     Page<Article> findByUser(Long userId, int page, int size);
+    Page<Article> findByMonth(String yearMonth, int page, int size);
     void deleteById(Long id);
     void incrementViewCount(Long id);
 }

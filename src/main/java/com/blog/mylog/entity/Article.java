@@ -5,7 +5,6 @@ import lombok.Data;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-
 @Data
 @Entity
 @Table(name = "article")
@@ -20,7 +19,10 @@ public class Article {
     @Column(length = 500)
     private String summary;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(name = "content_url")
+    private String contentUrl;
+
+    @Transient
     private String content;
 
     @Column(name = "cover_image")
@@ -43,6 +45,12 @@ public class Article {
 
     @Column(name = "comment_count")
     private Integer commentCount = 0;
+
+    @Column(name = "word_count")
+    private Integer wordCount;
+
+    @Column(name = "read_time")
+    private Integer readTime;
 
     private Integer status = 1;
 

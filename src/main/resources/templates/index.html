@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>首页 - Haily笔记</title>
+    <title>首页 - HailyNotes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pap6Vq5K1mY2q2X6mZ1QjvP0y2QZ+0yGqgZlJ+XJZp2t9K6F5p5s7YcV7Kp3y6e9Zk1Q1b1z0s6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         :root{
@@ -101,7 +101,7 @@
                         <a th:href="@{/article/{id}(id=${article.id})}" th:text="${article.title}">文章标题</a>
                     </h2>
                     <div class="post-meta">
-                        <span>📅 <span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd')}">2024-01-01</span></span>
+                        <span><span th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd')}">2024-01-01</span></span>
                         <span th:if="${article.category}" style="margin-left: 10px;">📂 <span th:text="${article.category}">分类</span></span>
                     </div>
                 </div>
@@ -112,7 +112,7 @@
                 </div>
                 <div class="post-footer">
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        <a th:href="@{/article/{id}(id=${article.id})}" class="read-more">阅读全文 →</a>
+                        <a th:href="@{/article/{id}(id=${article.id})}" class="read-more">阅读全文</a>
                         <form th:action="@{/article/like/{id}(id=${article.id})}" method="post" style="display: inline;">
                             <button type="submit" style="background: none; border: none; color: #00f0ff; cursor: pointer; font-size: 14px;">
                                 ❤️ <span th:text="${article.likeCount}">0</span>
@@ -133,14 +133,15 @@
 
         <!-- 右侧：侧边栏 -->
         <div class="sidebar">
+
             <div class="sidebar-widget">
+                    <h3 style="color: #00f0ff; font-size: 19px; margin: 0; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5);">
+                        Welcome to HailyNotes
+                    </h3>
                 <div class="blogger-info">
                     <div class="blogger-avatar">
-                        <img src="https://neeko-copilot.bytedance.net/api/text2image?prompt=anime%20style%20avatar%20girl&size=512x512" alt="博主头像" loading="lazy">
+                        <img src=""  loading="lazy">
                     </div>
-                    <h3 class="blogger-name">Haily</h3>
-                    <p class="blogger-desc">欢迎来到Haily的个人博客</p>
-                    <a href="/about" class="follow-btn">Follow Me</a>
                     <div class="sidebar-menu" style="margin-top: 15px;">
                         <a href="/articles" style="display: inline-block; margin: 5px; padding: 6px 12px; background: rgba(0, 240, 255, 0.2); color: #00f0ff; border-radius: 12px; font-size: 13px; text-decoration: none;">文章</a>
                         <a href="/articles" style="display: inline-block; margin: 5px; padding: 6px 12px; background: rgba(112, 0, 255, 0.2); color: #7000ff; border-radius: 12px; font-size: 13px; text-decoration: none;">标签</a>
@@ -172,8 +173,19 @@
                 </div>
             </div>
 
+            <!-- 年份/月份归档 -->
             <div class="sidebar-widget">
-                <h3 class="widget-title">🔥 最新文章</h3>
+                <h4 class="widget-title">归档</h4>
+                <ul class="archive-list">
+                    <li th:each="entry : ${monthArchives}">
+                        <a th:href="@{/articles(month=${entry.key})}" th:text="${entry.key}">2024-04</a>
+                        (<span th:text="${entry.value}">10</span>)
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-widget">
+                <h3 class="widget-title">最新文章</h3>
                 <ul class="recent-posts">
                     <li th:each="article : ${recentArticles}">
                         <a th:href="@{/article/{id}(id=${article.id})}" th:text="${article.title}">文章标题</a>

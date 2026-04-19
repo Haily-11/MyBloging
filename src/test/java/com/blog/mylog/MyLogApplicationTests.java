@@ -8,6 +8,7 @@ class MyLogApplicationTests {
 
     @Test
     void contextLoads() {
+        // basic context load test - left intentionally empty
     }
 
 }

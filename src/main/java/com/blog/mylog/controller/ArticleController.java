@@ -245,7 +245,7 @@ public class ArticleController {
 
         Article article = articleService.findById(id);
         article.setTitle(title);
-        
+
         if (summary != null && !summary.isEmpty()) {
             article.setSummary(summary);
         } else {
@@ -253,10 +253,17 @@ public class ArticleController {
             article.setSummary(plainText.length() > 150 ? plainText.substring(0, 150) + "..." : plainText);
         }
 
-        articleService.save(article);
-        
-        aliOssUtil.uploadArticleContent(content, id);
-        
+        // 先上传正文到 OSS，获取 URL
+        String contentUrl = aliOssUtil.uploadArticleContent(content, id);
+        if (contentUrl != null && !contentUrl.isEmpty()) {
+            article.setContentUrl(contentUrl);  // ← 关键：保存 URL 到数据库
+        } else {
+            // 如果 OSS 上传失败，直接把正文存到数据库
+            article.setContent(content);
+        }
+
+        articleService.save(article);  // 保存文章（现在 content_url 有值了）
+
         return "redirect:/article/" + id;
     }
 

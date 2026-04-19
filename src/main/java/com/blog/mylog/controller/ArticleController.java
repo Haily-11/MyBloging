@@ -5,6 +5,8 @@ import com.blog.mylog.entity.Article;
 import com.blog.mylog.entity.User;
 import com.blog.mylog.service.ArticleService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequiredArgsConstructor
 public class ArticleController {
+    private static final Logger log = LoggerFactory.getLogger(ArticleController.class);
 
     private final ArticleService articleService;
     private final AliOssUtil aliOssUtil;
@@ -110,7 +113,7 @@ public class ArticleController {
 
     private String cleanMarkdown(String content) {
         if (content == null) return "";
-        String text = content
+        return content
                 .replaceAll("#+\\s*", "")
                 .replaceAll("\\*\\*(.+?)\\*\\*", "$1")
                 .replaceAll("__(.+?)__", "$1")
@@ -127,7 +130,6 @@ public class ArticleController {
                 .replaceAll("<[^>]*>", "")
                 .replaceAll("\\s+", " ")
                 .trim();
-        return text;
     }
 
     @PostMapping("/doWrite")
@@ -163,8 +165,7 @@ public class ArticleController {
             savedArticle.setContentUrl(objectKey);
             articleService.save(savedArticle);
         } catch (Exception e) {
-            System.err.println("文章发布异常: " + e.getMessage());
-            e.printStackTrace();
+            log.error("文章发布异常", e);
         }
         
         return "redirect:/";

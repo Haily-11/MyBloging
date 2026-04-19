@@ -135,36 +135,28 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script th:inline="javascript">
-        const contentUrl = /*[[${contentUrl}]]*/ '';
+        const content = /*[[${content}]]*/ '';
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!contentUrl) {
-                document.getElementById('articleContent').textContent = '无法加载文章内容';
+            if (!content) {
+                document.getElementById('articleContent').innerHTML = '<p style="color: #ff006e;">文章内容加载失败</p>';
                 return;
             }
 
-            fetch(contentUrl)
-                .then(response => response.text())
-                .then(markdownContent => {
-                    const contentElement = document.getElementById('articleContent');
+            const contentElement = document.getElementById('articleContent');
 
-                    marked.setOptions({
-                        breaks: true,
-                        gfm: true,
-                        highlight: function(code, lang) {
-                            if (lang && hljs.getLanguage(lang)) {
-                                return hljs.highlight(code, { language: lang }).value;
-                            }
-                            return hljs.highlightAuto(code).value;
-                        }
-                    });
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                highlight: function(code, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    return hljs.highlightAuto(code).value;
+                }
+            });
 
-                    contentElement.innerHTML = marked.parse(markdownContent);
-                })
-                .catch(error => {
-                    console.error('加载文章内容失败:', error);
-                    document.getElementById('articleContent').textContent = '加载失败，请稍后重试';
-                });
+            contentElement.innerHTML = marked.parse(content);
         });
     </script>
 </div>

@@ -3,14 +3,16 @@ package com.blog.mylog.config;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.model.GeneratePresignedUrlRequest;
+import com.aliyun.oss.model.OSSObject;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Component
 @Data
 public class AliOssUtil {
+    private static final Logger log = LoggerFactory.getLogger(AliOssUtil.class);
 
     @Value("${aliyun.oss.endpoint}")
     private String endpoint;
@@ -105,7 +108,21 @@ public class AliOssUtil {
 
         try {
             String objectKey = "articles/" + articleId + "/content.md";
-            return generatePresignedUrl(objectKey, 60);
+            OSSObject ossObject = ossClient.getObject(bucketName, objectKey);
+            
+            try (InputStream is = ossObject.getObjectContent();
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                
+                StringBuilder content = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+                return content.toString();
+            }
+        } catch (Exception e) {
+            log.error("读取OSS文章失败: {}", articleId, e);
+            return null;
         } finally {
             ossClient.shutdown();
         }

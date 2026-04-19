@@ -78,9 +78,13 @@ public class ArticleController {
         Article article = articleService.findById(id);
         articleService.incrementViewCount(id);
         
-        String contentUrl = aliOssUtil.getArticleContent(id);
+        String content = aliOssUtil.getArticleContent(id);
+        if (content == null || content.isEmpty()) {
+            content = article.getContent() != null ? article.getContent() : "文章内容加载失败";
+        }
+        
         model.addAttribute("article", article);
-        model.addAttribute("contentUrl", contentUrl);
+        model.addAttribute("content", content);
         return "detail";
     }
 

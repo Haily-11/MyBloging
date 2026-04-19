@@ -4,6 +4,7 @@ import com.blog.mylog.entity.User;
 import com.blog.mylog.repository.UserRepository;
 import com.blog.mylog.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -12,7 +13,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public User register(String username, String password, String email) {
@@ -21,8 +24,7 @@ public class UserServiceImpl implements UserService {
         }
         User user = new User();
         user.setUsername(username);
-        // 注意：实际应该用 BCrypt 加密，这里先明文
-        user.setPassword(password);
+        user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setNickname(username);
         return userRepository.save(user);
@@ -30,14 +32,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User login(String username, String password) {
+        System.out.println("=== Login Debug ===");
+        System.out.println("Username: " + username);
+        System.out.println("Input password: " + password);
+        
         Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isEmpty()) {
-            throw new RuntimeException("用户不存在");
+            System.out.println("User not found!");
+            throw new RuntimeException("User not found");
         }
         User user = userOpt.get();
-        // 注意：实际应该用 BCrypt 匹配
-        if (!user.getPassword().equals(password)) {
-            throw new RuntimeException("密码错误");
+        System.out.println("DB password hash: " + user.getPassword());
+        
+        boolean matches = passwordEncoder.matches(password, user.getPassword());
+        System.out.println("Password matches: " + matches);
+        
+        if (!matches) {
+            throw new RuntimeException("Password error");
         }
         return user;
     }

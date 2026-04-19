@@ -40,6 +40,7 @@ public class AuthController {
             session.setAttribute("user", user);
             return "redirect:/";
         } catch (Exception e) {
+            e.printStackTrace();
             return "redirect:/login?error=" + e.getMessage();
         }
     }

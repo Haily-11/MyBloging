@@ -168,7 +168,8 @@
                         <li th:each="category : ${categories}">
                             <a th:href="@{/articles(category=${category})}" th:text="${category}">分类</a>
                         </li>
-                        <li th:if="${#lists.isEmpty(categories)}" style="color: #8892b0;">暂无分类</li>
+                        <!-- null-safe check: if categories is null or empty show placeholder -->
+                        <li th:if="${categories == null or #lists.isEmpty(categories)}" style="color: #8892b0;">暂无分类</li>
                     </ul>
                 </div>
             </div>
@@ -212,7 +213,8 @@
                     </div>
                     <div class="site-info-item">
                         <span>分类数目：</span>
-                        <span th:text="${#lists.size(categories)}">0</span>
+                        <!-- null-safe size: show 0 when categories is null -->
+                        <span th:text="${categories == null ? 0 : #lists.size(categories)}">0</span>
                     </div>
                 </div>
             </div>

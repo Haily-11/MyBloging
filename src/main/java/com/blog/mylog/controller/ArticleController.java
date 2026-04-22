@@ -191,6 +191,8 @@ public class ArticleController {
         if (session.getAttribute("user") == null) {
             return "redirect:/login";
         }
+        // 确保向模板提供 CSRF token，避免表单提交时校验失败导致重定向
+        model.addAttribute("csrfToken", CsrfTokenUtil.generateToken(session));
         
         List<Article> allArticles = articleService.findAll(1, 10000).getContent();
         List<String> categories = allArticles.stream()

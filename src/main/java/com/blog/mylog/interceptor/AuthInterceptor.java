@@ -17,7 +17,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (uri.equals("/") || uri.startsWith("/article/") ||
             uri.equals("/login") || uri.equals("/register") ||
             uri.startsWith("/css/") || uri.startsWith("/js/") ||
-            uri.startsWith("/images/")) {
+            uri.startsWith("/images/") || uri.equals("/doWrite") || 
+            uri.equals("/doEdit") || uri.startsWith("/delete/")) {
             return true;
         }
 

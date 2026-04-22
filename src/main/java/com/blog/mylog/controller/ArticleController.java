@@ -4,6 +4,8 @@ import com.blog.mylog.config.AliOssUtil;
 import com.blog.mylog.entity.Article;
 import com.blog.mylog.entity.User;
 import com.blog.mylog.service.ArticleService;
+import com.blog.mylog.util.CsrfTokenUtil;
+import com.blog.mylog.util.XssFilter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +27,7 @@ public class ArticleController {
     private final AliOssUtil aliOssUtil;
 
     @GetMapping("/")
-    public String index(Model model, @RequestParam(defaultValue = "1") int page) {
+    public String index(Model model, @RequestParam(defaultValue = "1") int page, HttpSession session) {
         Page<Article> articlePage = articleService.findAll(page, 10);
         model.addAttribute("articles", articlePage.getContent());
         model.addAttribute("currentPage", page);
@@ -69,6 +71,10 @@ public class ArticleController {
                 .sorted()
                 .collect(Collectors.toList());
         model.addAttribute("categories", categories);
+
+        if (session.getAttribute("user") != null) {
+            model.addAttribute("csrfToken", CsrfTokenUtil.generateToken(session));
+        }
 
         return "index";
     }
@@ -142,24 +148,29 @@ public class ArticleController {
                           @RequestParam(required = false) String summary,
                           @RequestParam(required = false) String category,
                           @RequestParam(required = false) String tags,
+                          @RequestParam(required = false) String csrfToken,
                           HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
         }
 
+        if (!CsrfTokenUtil.validateToken(session, csrfToken)) {
+            return "redirect:/write?error=CSRF验证失败";
+        }
+
         Article article = new Article();
-        article.setTitle(title);
+        article.setTitle(XssFilter.clean(title));
         
         if (summary != null && !summary.isEmpty()) {
-            article.setSummary(summary);
+            article.setSummary(XssFilter.clean(summary));
         } else {
             String plainText = cleanMarkdown(content);
             article.setSummary(plainText.length() > 150 ? plainText.substring(0, 150) + "..." : plainText);
         }
         
-        article.setCategory(category);
-        article.setTags(tags);
+        article.setCategory(XssFilter.clean(category));
+        article.setTags(XssFilter.clean(tags));
         article.setUserId(user.getId());
         article.setStatus(2);
 
@@ -242,32 +253,35 @@ public class ArticleController {
                          @RequestParam String title,
                          @RequestParam String content,
                          @RequestParam(required = false) String summary,
+                         @RequestParam(required = false) String csrfToken,
                          HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
         }
 
+        if (!CsrfTokenUtil.validateToken(session, csrfToken)) {
+            return "redirect:/edit/" + id + "?error=CSRF验证失败";
+        }
+
         Article article = articleService.findById(id);
-        article.setTitle(title);
+        article.setTitle(XssFilter.clean(title));
 
         if (summary != null && !summary.isEmpty()) {
-            article.setSummary(summary);
+            article.setSummary(XssFilter.clean(summary));
         } else {
             String plainText = cleanMarkdown(content);
             article.setSummary(plainText.length() > 150 ? plainText.substring(0, 150) + "..." : plainText);
         }
 
-        // 先上传正文到 OSS，获取 URL
         String contentUrl = aliOssUtil.uploadArticleContent(content, id);
         if (contentUrl != null && !contentUrl.isEmpty()) {
-            article.setContentUrl(contentUrl);  // ← 关键：保存 URL 到数据库
+            article.setContentUrl(contentUrl);
         } else {
-            // 如果 OSS 上传失败，直接把正文存到数据库
             article.setContent(content);
         }
 
-        articleService.save(article);  // 保存文章（现在 content_url 有值了）
+        articleService.save(article);
 
         return "redirect:/article/" + id;
     }

@@ -1,23 +1,23 @@
-//package com.blog.mylog.config;
-//
-//import org.springframework.context.annotation.Configuration;
-//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-//import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-//import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-//
-//@Configuration
-//@EnableWebSecurity
-//public class WebConfig extends WebSecurityConfigurerAdapter {
-//
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http
-//            .csrf().disable()
-//            .authorizeRequests()
-//                .anyRequest().permitAll()
-//            .and()
-//            .formLogin().disable()
-//            .httpBasic().disable()
-//            .logout().disable();
-//    }
-//}
+package com.blog.mylog.config;
+
+import com.blog.mylog.interceptor.AuthInterceptor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+@RequiredArgsConstructor
+public class WebConfig implements WebMvcConfigurer {
+
+    private final AuthInterceptor authInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/", "/article/**", "/login", "/register", 
+                                   "/doLogin", "/doRegister", "/logout",
+                                   "/css/**", "/js/**", "/images/**");
+    }
+}

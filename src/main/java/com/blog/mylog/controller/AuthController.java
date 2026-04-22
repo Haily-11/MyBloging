@@ -3,6 +3,7 @@ package com.blog.mylog.controller;
 
 import com.blog.mylog.entity.User;
 import com.blog.mylog.service.UserService;
+import com.blog.mylog.util.XssFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,16 @@ public class AuthController {
                              @RequestParam String email,
                              HttpSession session) {
         try {
+            username = XssFilter.clean(username);
+            email = XssFilter.clean(email);
+            
+            if (username.length() < 3 || username.length() > 20) {
+                return "redirect:/register?error=用户名长度3-20字符";
+            }
+            if (password.length() < 6) {
+                return "redirect:/register?error=密码至少6位";
+            }
+            
             User user = userService.register(username, password, email);
             session.setAttribute("user", user);
             return "redirect:/";
@@ -36,6 +47,12 @@ public class AuthController {
                           @RequestParam String password,
                           HttpSession session) {
         try {
+            username = XssFilter.clean(username);
+            
+            if (username.isEmpty() || password.isEmpty()) {
+                return "redirect:/login?error=用户名和密码不能为空";
+            }
+            
             User user = userService.login(username, password);
             session.setAttribute("user", user);
             return "redirect:/";

@@ -74,6 +74,7 @@
         <h2 class="write-title neon-text" th:text="${isEdit} ? '编辑文章' : '写文章'">写文章</h2>
         <form method="post" th:action="${isEdit} ? '/doEdit' : '/doWrite'">
             <input type="hidden" name="id" th:if="${isEdit}" th:value="${article.id}">
+            <input type="hidden" name="csrfToken" th:value="${csrfToken}">
             <div class="mb-3">
                 <label>标题</label>
                 <input type="text" name="title" class="form-control" required placeholder="请输入文章标题" th:value="${article?.title}">

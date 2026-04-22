@@ -224,6 +224,13 @@ public class ArticleController {
         Article article = articleService.findById(id);
         model.addAttribute("article", article);
         model.addAttribute("isEdit", true);
+        model.addAttribute("csrfToken", CsrfTokenUtil.generateToken(session));
+        
+        String content = aliOssUtil.getArticleContent(id);
+        if (content == null || content.isEmpty()) {
+            content = article.getContent() != null ? article.getContent() : "";
+        }
+        model.addAttribute("content", content);
         
         List<Article> allArticles = articleService.findAll(1, 10000).getContent();
         List<String> categories = allArticles.stream()

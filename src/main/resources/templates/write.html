@@ -104,7 +104,7 @@
                     <span id="uploadStatus" class="upload-status"></span>
                 </div>
                 <input type="file" id="imageUpload" accept="image/*" style="display: none;">
-                <textarea name="content" id="contentArea" class="form-control" rows="15" required placeholder="支持Markdown格式，点击上传图片按钮插入图片" th:text="${article?.content}"></textarea>
+                <textarea name="content" id="contentArea" class="form-control" rows="15" required placeholder="支持Markdown格式，点击上传图片按钮插入图片"></textarea>
             </div>
             <button type="submit" class="btn-submit" th:text="${isEdit} ? '保存修改' : '发布文章'">发布文章</button>
         </form>
@@ -113,8 +113,16 @@
     <script th:inline="javascript">
         const categories = /*[[${categories}]]*/ [];
         const tags = /*[[${tags}]]*/ [];
+        const isEdit = /*[[${isEdit}]]*/ false;
+        const originalContent = /*[[${content}]]*/ '';
 
         document.addEventListener('DOMContentLoaded', function() {
+            const contentArea = document.getElementById('contentArea');
+
+            if (isEdit && originalContent) {
+                contentArea.value = originalContent;
+            }
+
             const categoryInput = document.getElementById('categoryInput');
             const tagsInput = document.getElementById('tagsInput');
             const categorySuggestions = document.getElementById('categorySuggestions');
